@@ -1,0 +1,147 @@
+#!/usr/bin/perl -w
+# poor man's low power alarm
+# Author: Chao-Kuei Hung
+# License: GNU General Public License 3 or later
+# http://people.ofset.org/~ckhung/
+
+use Getopt::Std;
+use strict;
+my (%opts);
+
+%opts = (
+    v => 0,		# verbosity
+    s => 900,		# check status every ? seconds
+    l => '30%180s {beeptune #warn} 10%60s {beeptune #serious} 5%20s {beeptune #urgent}',
+			# warning level definitions:
+			# each level definition has the format:
+			# [mm]%[nn]s {[cmd]}
+			# meaning: executes command [cmd]  and re-checks
+			# every [nn] seconds once the battery level drops
+			# below [mm] (percentage).
+			# Note: each mm must be smaller than that of the
+			# previous level, otherwise it will be ignored.
+			# [cmd] can be any shell command, but pmlp-alarm
+			# has a built-in set of inline tune files which
+			# specifically makes using beeptune as [cmd] easier:
+			# #warn is recognized as feeding the content of
+			# a here-document in pmlp-alarm to the standard
+			# input of beeptune. See variable $builtin_tunes at end.
+);
+
+getopts('v:s:l:', \%opts);
+
+my (
+    $level_def,		# level definition array
+    $sleep_interval,	# how many seconds to sleep this time around?
+    $builtin_tunes,	# array of *.tune files for the beeptune command,
+			# represented as here documents
+    $power_path,	# path of system power information
+    @L, $i, $level, $sleep, $cmd, $bat,
+);
+
+$power_path = "/sys/class/power_supply";
+
+@L = $opts{l} =~ /(\d+)%(\d+)s\s*\{(.*?)\}/g;
+print STDERR "[poor man's low power alarm] by http://people.ofset.org/~ckhung\n" if ($opts{v} > 0);
+die "This computer does not seem to have a battery"
+    unless defined AC_is_on();
+for ($i=0; $i+2<=$#L; $i+=3) {
+    ($level, $sleep, $cmd) = @L[$i..$i+2];
+    print STDERR "at battery level ${level}% re-check every ${sleep} seconds and '$cmd'\n"
+	if ($opts{v} > 0);
+    if ($cmd =~ /beeptune.*#(\w+)\b/ and not defined $builtin_tunes->{$1}) {
+	my ($tune) = $1;
+	print STDERR "unrecognized tune #$tune being replaced by #urgent\n";
+	$cmd =~ s/(beeptune.*)#$tune\b/$1#urgent/;
+    }
+    push @$level_def, {
+	level => $level,
+	sleep => $sleep,
+	cmd => $cmd
+    };
+}
+
+$sleep_interval = $opts{s};
+while (1) {
+    $bat = battery_percent();
+    printf STDERR "battery: %2d%%\n", $bat if $opts{v} > 1;
+    $i = AC_is_on();
+    if ($i) {
+	print STDERR "plugged to AC power ($i)\n" if $opts{v} > 1;
+    } else {
+	print STDERR "running on battery (unplugged)\n" if $opts{v} > 1;
+	if ($bat < $level_def->[0]{level}) {
+	    for ($i=0; $i<$#$level_def; ++$i) {
+		 last if $bat >= $level_def->[$i+1]{level};
+	    }
+	    $sleep_interval = $level_def->[$i]{sleep};
+	    $cmd = $level_def->[$i]{cmd};
+	    if ($cmd =~ /beeptune.*#(\w+)\b/) {
+		my ($tune) = $1;
+		die unless defined $builtin_tunes->{$tune};
+		$cmd =~ s/#$tune\b//;
+		open F, "| $cmd";
+		print F $builtin_tunes->{$tune};
+		close F;
+	    } else {
+		system($cmd);
+	    }
+	}
+    }
+    sleep($sleep_interval);
+}
+
+# how did I figure out the paths? With these posts and a bit experimentation:
+# http://ecloud.org/index.php?title=Pow_scripts
+# http://forums.justlinux.com/showthread.php?140687-Check-battery-life-from-command-line
+# http://askubuntu.com/questions/214379/where-did-proc-acpi-battery-bat0-xxx-go-in-12-10
+sub AC_is_on {
+    my (@f_list) = `find $power_path/AC*/ -name 'online'`;
+    return undef if ($#f_list < 0);
+    my ($on) = 0;
+    map { chomp; $on += `cat $_`; } @f_list;
+    return $on;
+}
+
+sub battery_percent {
+    my (@f_list) = `find $power_path/BAT*/ -name 'energy_now' -o -name 'charge_now'`;
+    my ($now, $full);
+    map {
+	chomp;
+	$now += `cat $_`;
+	s/now/full/;
+	$full += `cat $_`;
+    } @f_list;
+    return $now * 100.0 / $full;
+}
+
+BEGIN {
+$builtin_tunes = {
+
+warn => <<END,
+12 1
+ 0 1
+END
+
+serious => <<END,
+12 1
+ 7 1
+ 4 1
+ 0 1
+END
+
+urgent => <<END,
+12 1
+11 1
+ 9 1
+ 7 1
+ 5 1
+ 4 1
+ 2 1
+ 0 1
+END
+};
+
+}
+
+
