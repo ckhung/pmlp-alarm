@@ -149,12 +149,19 @@ img {
   border: 1px solid #ccc;
 }
 
+dfn {
+  color: #4c0f4c;
+}
+
+.subst {
+  text-decoration: underline;
+}
 
 /* Code blocks */
 
 code, pre {
 	font-family: Monaco, "Bitstream Vera Sans Mono", "Lucida Console", Terminal, monospace;
-  color:#000;
+  color:#080;
   font-size:14px;
 }
 

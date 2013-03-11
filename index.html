@@ -33,34 +33,91 @@
         <h1>Pmlp-alarm</h1>
 
 <p>Poor Man's Low Power Alarm is a tiny perl script to alarm you
-when the laptop power is low.
+when the laptop power is low. I wrote it because I run
+<a href="http://antix.mepis.org">antix</a> on my old computers
+and because icewm does not seem to have an auditory
+low power alarm program.
 
-        <h3>Welcome to GitHub Pages.</h3>
+        <h3>Using pmlp-alarm</h3>
 
-<p>This automatic page generator is the easiest way to create beautiful pages for all of your projects. Author your page content here using GitHub Flavored Markdown, select a template crafted by a designer, and publish. After your page is generated, you can check out the new branch:</p>
+<p>Pmlp-alarm makes use of <a href="http://ckhung.github.com/beeptune/">
+beeptune</a> so please make sure that (1) you have installed
+the beep package (either rpm or deb) and (2) you have
+unmuted the beep channel using alsamixer.
+However, you don't need to download beeptune because
+a copy of the bare beeptune script (without documents and examples)
+is included in pmlp-alarm. Once these are taken care of, you need to:
+<ol>
+<li>Copy both <code>pmlp-alarm</code> and <code>beeptune</code>
+to <code>/usr/bin</code>
+<li>(Optional) If you are running icewm like me, you can
+enable display of power percentage on the taskbar by setting
+<code>TaskBarShowAPMStatus=1</code> in <code>~/.icewm/preferences</code>
+and restarting icewm.
+<li>Execute <code>pmlp-alarm -v 2</code> on the command line,
+watch its output, and wait for the battery to run into low power.
+By default, pmlp-alarm starts beeping when the batter drops below 30%,
+and beeps more urgently when it drops below 10% and even more so below 5%.
+<li>If it works fine on the command line, then add this command
+<code>pmlp-alarm</code> to <code>/etc/rc.local</code>
+You don't need <code>-v 2</code> since you can't see the message anyway.
+</ol>
 
-<pre><code>$ cd your_repo_root/repo_name
-$ git fetch origin
-$ git checkout gh-pages
-</code></pre>
+        <h3>Options</h3>
 
-<p>If you're using the GitHub for Mac, simply sync your repository and you'll see the new branch.</p>
+<p>The <code>-v</code> option controls verbosity.
+You can use <code>-v 1</code> to make pmlp-alarm
+print more information, and <code>-v 2</code>
+to make it print even more messages.
 
-<h3>Designer Templates</h3>
+<p>You can specify the time interval (in seconds)
+between battery level checks when power is relatively high
+using the <code>-s</code> option.
+For example <code>-s 900</code> means checking the
+battery power level every 15 minutes.
 
-<p>We've crafted some handsome templates for you to use. Go ahead and continue to layouts to browse through them. You can easily go back to edit your page before publishing. After publishing your page, you can revisit the page generator and switch to another theme. Your Page content will be preserved if it remained markdown format.</p>
+<p>The more complex option <code>-l</code> defines
+a list of <dfn>power level specifications</dfn> separated by spaces.
+A power level specification is of the form
+<code><span class="subst">mm</span>%<span class="subst">nn</span>s
+{<span class="subst">cmd</span>}</code>, which asks
+pmlp-alarm to change checking interval to
+every <span class="subst">nn</span> seconds
+and execute the alarm command <span class="subst">cmd</span>
+once the power level drops below <span class="subst">mm</span>%.
+For example, the power level specification
+<code>30%180s {beep -f 800 -l 200}</code>
+asks pmlp-alarm to check the power level and run the alarm
+command <code>beep -f 800 -l 200</code> every 3 minutes
+once the power level drops below 30%.
 
-<h3>Rather Drive Stick?</h3>
+<p>Other possible auditory alarm commands include <code>mpg321</code>,
+<code>playmidi</code>, and <code>beeptune</code>.
+Each of these commands requires a song file as an argument.
+Be sure to give full path names.
+If you are using beeptune as the alarm command,
+however, pmlp-alarm provides three builtin tunes
+so that you don't need any separate song file.
+You reference them in the alarm command as
+<code>#warn</code>, <code>#serious</code>, and <code>#urgent</code>,
+respectively. So for example,
+<code>30%180s {beeptune #warn}</code>
+asks pmlp-alarm to check the power level and play the <code>#warn</code>
+builtin beep tune every 3 minutes once the power level drops below 30%.
 
-<p>If you prefer to not use the automatic generator, push a branch named <code>gh-pages</code> to your repository to create a page manually. In addition to supporting regular HTML content, GitHub Pages support Jekyll, a simple, blog aware static site generator written by our own Tom Preston-Werner. Jekyll makes it easy to create site-wide headers and footers without having to copy them across every page. It also offers intelligent blog support and other advanced templating features.</p>
+<p><strong>IMPORTANT: power level specifications
+must be presented in decreasing order of power level.</strong>
 
-<h3>Authors and Contributors</h3>
+<p>The default behavior of beeptune is as if 
+the following option is given on the command line:
+<code>-l '30%180s {beeptune #warn} 10%60s {beeptune #serious} 5%20s
+{beeptune #urgent}'</code>
 
-<p>You can <a href="https://github.com/blog/821" class="user-mention">@mention</a> a GitHub username to generate a link to their profile. The resulting <code>&lt;a&gt;</code> element will link to the contributor's GitHub Profile. For example: In 2007, Chris Wanstrath (<a href="https://github.com/defunkt" class="user-mention">@defunkt</a>), PJ Hyett (<a href="https://github.com/pjhyett" class="user-mention">@pjhyett</a>), and Tom Preston-Werner (<a href="https://github.com/mojombo" class="user-mention">@mojombo</a>) founded GitHub.</p>
+<p>You can change the builtin tunes or add more builtin tunes.
+Please see the <code>$builtin_tunes</code> variable
+initialization at the end of the script as well as
+the documentation for beeptune for more details.
 
-<h3>Support or Contact</h3>
-
-<p>Having trouble with Pages? Check out the documentation at <a href="http://help.github.com/pages">http://help.github.com/pages</a> or contact <a href="mailto:support@github.com">support@github.com</a> and we’ll help you sort it out.</p>
       </section>
       <footer>
         <p><small>Hosted on <a href="https://pages.github.com">GitHub Pages</a> using the Dinky theme</small></p>
