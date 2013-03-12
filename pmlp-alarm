@@ -47,8 +47,6 @@ die "This computer does not seem to have a battery"
     unless defined AC_is_on();
 for ($i=0; $i+2<=$#L; $i+=3) {
     ($level, $sleep, $cmd) = @L[$i..$i+2];
-    print STDERR "at battery level ${level}% re-check every ${sleep} seconds and '$cmd'\n"
-	if ($opts{v} > 0);
     if ($cmd =~ /beeptune.*#(\w+)\b/ and not defined $builtin_tunes->{$1}) {
 	my ($tune) = $1;
 	print STDERR "unrecognized tune #$tune being replaced by #urgent\n";
@@ -59,6 +57,13 @@ for ($i=0; $i+2<=$#L; $i+=3) {
 	sleep => $sleep,
 	cmd => $cmd
     };
+}
+
+@$level_def = sort { $b->{level} - $a->{level} } @$level_def;
+if ($opts{v} > 0) {
+    foreach (@$level_def) {
+	print STDERR "at battery level $_->{level}% re-check every $_->{sleep} seconds and '$_->{cmd}'\n"
+    }
 }
 
 $sleep_interval = $opts{s};

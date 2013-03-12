@@ -33,10 +33,10 @@
         <h1>Pmlp-alarm</h1>
 
 <p>Poor Man's Low Power Alarm is a tiny perl script to alarm you
-when the laptop power is low. I wrote it because I run
-<a href="http://antix.mepis.org">antix</a> on my old computers
-and because icewm does not seem to have an auditory
-low power alarm program.
+when the laptop power is low. I wrote it because on my old computers
+I run <a href="http://antix.mepis.org">antix</a>,
+whose window manager icewm does not seem to have
+an auditory low power alarm program.
 
         <h3>Using pmlp-alarm</h3>
 
@@ -44,7 +44,7 @@ low power alarm program.
 beeptune</a> so please make sure that (1) you have installed
 the beep package (either rpm or deb) and (2) you have
 unmuted the beep channel using alsamixer.
-However, you don't need to download beeptune because
+However, you don't need to download my beeptune package because
 a copy of the bare beeptune script (without documents and examples)
 is included in pmlp-alarm. Once these are taken care of, you need to:
 <ol>
@@ -71,7 +71,7 @@ print more information, and <code>-v 2</code>
 to make it print even more messages.
 
 <p>You can specify the time interval (in seconds)
-between battery level checks when power is relatively high
+between battery level checks when the battery power is relatively high
 using the <code>-s</code> option.
 For example <code>-s 900</code> means checking the
 battery power level every 15 minutes.
@@ -96,7 +96,7 @@ once the power level drops below 30%.
 Each of these commands requires a song file as an argument.
 Be sure to give full path names.
 If you are using beeptune as the alarm command,
-however, pmlp-alarm provides three builtin tunes
+The good news is that pmlp-alarm provides three builtin tunes
 so that you don't need any separate song file.
 You reference them in the alarm command as
 <code>#warn</code>, <code>#serious</code>, and <code>#urgent</code>,
@@ -105,21 +105,20 @@ respectively. So for example,
 asks pmlp-alarm to check the power level and play the <code>#warn</code>
 builtin beep tune every 3 minutes once the power level drops below 30%.
 
-<p><strong>IMPORTANT: power level specifications
-must be presented in decreasing order of power level.</strong>
-
-<p>The default behavior of beeptune is as if 
+<p>The default behavior of pmlp-alarm is as if 
 the following option is given on the command line:
 <code>-l '30%180s {beeptune #warn} 10%60s {beeptune #serious} 5%20s
 {beeptune #urgent}'</code>
 
-<p>You can change the builtin tunes or add more builtin tunes.
+<p>You can also change the builtin tunes or add more builtin tunes.
 Please see the <code>$builtin_tunes</code> variable
 initialization at the end of the script as well as
-the documentation for beeptune for more details.
+the documentation for beeptune (for the .tune file format) for more details.
 
       </section>
       <footer>
+	<p><br /><br /><small><a href="index.zh_TW.html">中文</a></small></p>
+
         <p><small>Hosted on <a href="https://pages.github.com">GitHub Pages</a> using the Dinky theme</small></p>
       </footer>
     </div>

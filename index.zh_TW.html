@@ -1,0 +1,121 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Pmlp-alarm by ckhung</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="javascripts/scale.fix.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1 class="header">Pmlp-alarm</h1>
+        <p class="header">Poor Man's Low Power Alarm - 窮人版的電池低電量警報器</p>
+
+        <ul>
+          <li class="download"><a class="buttons" href="https://github.com/ckhung/pmlp-alarm/zipball/master">Download ZIP</a></li>
+          <li class="download"><a class="buttons" href="https://github.com/ckhung/pmlp-alarm/tarball/master">Download TAR</a></li>
+          <li><a class="buttons github" href="https://github.com/ckhung/pmlp-alarm">View On GitHub</a></li>
+        </ul>
+
+        <p class="header">This project is maintained by <a class="header name" href="https://github.com/ckhung">ckhung</a></p>
+
+
+      </header>
+      <section>
+        <h1>Pmlp-alarm</h1>
+
+<p>當筆記電腦的電池電量太低時, Poor Man's Low Power Alarm
+會用內建喇叭發出簡單的警告聲。 因為我在舊電腦上安裝 
+<a href="http://antix.mepis.org">antix</a>
+而它所採用的 icewm 視窗管理員好像沒有 「會發聲的電池低電量警告器」 可用,
+所以我寫了這支小小的 perl 程式。
+
+
+        <h3>使用 pmlp-alarm</h3>
+
+<p>Pmlp-alarm 用到 <a href="http://ckhung.github.com/beeptune/">
+beeptune</a>, 所以您必須先 (1) 安裝 rpm 或 deb 底下的 beep 套件
+(2) 用 alsamixer 解除 beep 頻道的靜音。
+不過您並不需要下載我的 beeptune 套件, 因為在 pmlp-alarm
+的下載包裡面已經內附一份 beeptune 程式 (雖然沒有文件及範例)。
+以上就緒後, 請:
+<ol>
+<li>把 <code>pmlp-alarm</code> 跟 <code>beeptune</code>
+拷貝到 <code>/usr/bin</code> 去。
+<li>(可省略) 如果您跟我一樣使用 icewm, 則可以在
+<code>~/.icewm/preferences</code> 檔案裡面設定
+<code>TaskBarShowAPMStatus=1</code> 並重新啟動 icewm,
+這樣就可以在下方工作列 (taskbar) 看到目前的電池電量。
+<li>在命令列上執行 <code>pmlp-alarm -v 2</code>。
+請檢視它的輸出, 並且讓筆電的電池逐漸耗盡。
+當電量降到 30% 以下時, pmlp-alarm 會開始發出警告聲;
+降到 10% 以下時, 警告聲更急; 降到 5% 以下時更加急切。
+<li>如果一切沒問題, 就在 <code>/etc/rc.local</code>
+裡面加上一句 <code>pmlp-alarm</code> 。
+至於 <code>-v 2</code> 選項可以省下來,
+反正它印的訊息我們也看不見。
+</ol>
+
+        <h3>選項</h3>
+
+<p>選項 <code>-v</code> 用來調整程式列印訊息的多寡,
+例如 <code>-v 1</code> 會叫 pmlp-alarm 多印一些資料;
+<code>-v 2</code> 會叫它印更多資料。
+
+<p>選項 <code>-s</code> 用來指定: 電量尚稱足夠時,
+每隔幾秒要檢查一次電池? 例如 <code>-s 900</code>
+表示每隔 15 分鐘檢查一次電池的電量。
+
+<p>選項 <code>-l</code> 比較囉嗦, 裡面包含許多個
+<dfn>power level specifications</dfn>, 彼此之間以空白隔開。
+每個 power level specifications 字串長得像這樣:
+<code><span class="subst">mm</span>%<span class="subst">nn</span>s
+{<span class="subst">cmd</span>}</code>,
+表示要求 pmlp-alarm: 只要電量降到 <span class="subst">mm</span>%
+以下, 就要改成每 <span class="subst">nn</span> 秒檢查一次電池的電量,
+並且執行 <span class="subst">cmd</span> 以示警告。
+比方說, <code>30%180s {beep -f 800 -l 200}</code>
+表示: 只要電量降到 30% 以下, 就要執行 <code>beep -f 800 -l 200</code>
+以示警告, 並且改成每三分鐘檢查一次電池的電量。
+
+<p>你也可以用 <code>mpg321</code>、 <code>playmidi</code>、
+<code>beeptune</code> 等等發聲指令來當做警告指令。
+不過這些指令都需要音樂資料檔作為參數 --
+建議用完整路徑指定音樂資料檔。
+好消息是: 如果你採用 beeptune 作為警告指令,
+pmlp-alarm 已經內建三種警告音調,
+分別叫做 <code>#warn</code>、 <code>#serious</code>、
+跟 <code>#urgent</code> --
+所以你就不需要另外再餵音樂資料檔給它吃了。
+比方說, <code>30%180s {beeptune #warn}</code>
+指示 pmlp-alarm: 當電量低於 30% 時,
+改成每隔三分鐘檢查一次電量, 並播放內建的
+<code>#warn</code> 警告音調。
+
+<p>Pmlp-alarm 預設的行為等同於以下選項:
+<code>-l '30%180s {beeptune #warn} 10%60s {beeptune #serious} 5%20s
+{beeptune #urgent}'</code>
+
+<p>你也可以改變或新增預設的警告音調。
+詳見程式碼最下方 <code>$builtin_tunes</code> 變數的初始化設定;
+.tune 檔格式請考 beeptune 的文件。
+
+      </section>
+      <footer>
+	<p><br /><br /><small><a href="index.html">English</a></small></p>
+
+        <p><small>Hosted on <a href="https://pages.github.com">GitHub Pages</a> using the Dinky theme</small></p>
+      </footer>
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+		
+  </body>
+</html>
